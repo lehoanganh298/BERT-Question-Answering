@@ -29,6 +29,10 @@ import tokenization
 import six
 import tensorflow as tf
 
+# Remove deprecation warning in log
+from tensorflow.python.util import deprecation
+deprecation._PRINT_DEPRECATION_WARNINGS = False
+
 flags = tf.flags
 
 FLAGS = flags.FLAGS
@@ -427,7 +431,7 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
         start_position = 0
         end_position = 0
 
-      if example_index < 20:
+      if example_index < 1:#20:
         tf.logging.info("*** Example ***")
         tf.logging.info("unique_id: %s" % (unique_id))
         tf.logging.info("example_index: %s" % (example_index))
@@ -632,12 +636,13 @@ def model_fn_builder(bert_config, init_checkpoint, learning_rate,
         tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
     tf.logging.info("**** Trainable Variables ****")
-    for var in tvars:
-      init_string = ""
-      if var.name in initialized_variable_names:
-        init_string = ", *INIT_FROM_CKPT*"
-      tf.logging.info("  name = %s, shape = %s%s", var.name, var.shape,
-                      init_string)
+    # for var in tvars:
+    #   init_string = ""
+    #   if var.name in initialized_variable_names:
+    #     init_string = ", *INIT_FROM_CKPT*"
+    #   tf.logging.info("  name = %s, shape = %s%s", var.name, var.shape,
+    #                   init_string)
+    tf.logging.info(f" Number of variables: {len(tvars)}")
 
     output_spec = None
     if mode == tf.estimator.ModeKeys.TRAIN:
