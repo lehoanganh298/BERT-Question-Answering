@@ -26,6 +26,7 @@ import optimization
 import tokenization
 import tensorflow as tf
 import json
+import random
 
 flags = tf.flags
 
@@ -346,7 +347,10 @@ class ZaloProcessor(DataProcessor):
 
       examples = []
 
-      for item in data:
+      n_items = len(data)
+      n_train = int(n_items*0.8)
+
+      for item in data[:n_train]:
         guid = item['id']
         text_a = tokenization.convert_to_unicode(item['question'])
         text_b = tokenization.convert_to_unicode(item['text'])
@@ -359,13 +363,36 @@ class ZaloProcessor(DataProcessor):
             InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
       return examples
   
+  def get_dev_examples(self, data_dir):
+    """See base class."""
+    with tf.gfile.Open(os.path.join(data_dir, "train.json"), 'r') as json_file:
+      data = json.load(json_file)
+
+      examples = []
+
+      n_items = len(data)
+      n_train = int(n_items*0.8)
+
+      for item in data[n_train:]:
+        guid = item['id']
+        text_a = tokenization.convert_to_unicode(item['question'])
+        text_b = tokenization.convert_to_unicode(item['text'])
+        if item['label'] == True:
+          label = tokenization.convert_to_unicode('True')
+        else:
+          label = tokenization.convert_to_unicode('False')
+
+        examples.append(
+            InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+      return examples
+
   def get_test_examples(self, data_dir):
     """See base class."""
     with tf.gfile.Open(os.path.join(data_dir, "test.json"), 'r') as json_file:
       data = json.load(json_file)
 
       examples = []
-
+      
       for item in data:
         text_a = tokenization.convert_to_unicode(item['question'])
         for paragraph in item['paragraphs']:
