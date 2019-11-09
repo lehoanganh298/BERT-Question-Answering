@@ -96,6 +96,9 @@ flags.DEFINE_float(
 flags.DEFINE_integer("save_checkpoints_steps", 1000,
                      "How often to save the model checkpoint.")
 
+flags.DEFINE_integer("keep_checkpoint_max", 1,
+                     " The maximum number of recent checkpoint files to keep. Default is 1 to keep storage not overflow.")
+                     
 flags.DEFINE_integer("iterations_per_loop", 1000,
                      "How many steps to make in each estimator call.")
 
@@ -948,6 +951,7 @@ def main(_):
       master=FLAGS.master,
       model_dir=FLAGS.output_dir,
       save_checkpoints_steps=FLAGS.save_checkpoints_steps,
+      keep_checkpoint_max=FLAGS.keep_checkpoint_max,
       tpu_config=tf.contrib.tpu.TPUConfig(
           iterations_per_loop=FLAGS.iterations_per_loop,
           num_shards=FLAGS.num_tpu_cores,
