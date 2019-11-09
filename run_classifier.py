@@ -25,6 +25,7 @@ import modeling
 import optimization
 import tokenization
 import tensorflow as tf
+import json
 
 flags = tf.flags
 
@@ -323,15 +324,62 @@ class QnliProcessor(DataProcessor):
       if i == 0:
         continue
       guid = "%s-%s" % (set_type, tokenization.convert_to_unicode(line[0]))
-      text_a = tokenization.convert_to_unicode(line[8])
-      text_b = tokenization.convert_to_unicode(line[9])
+      text_a = tokenization.convert_to_unicode(line[1])
+      text_b = tokenization.convert_to_unicode(line[2])
       if set_type == "test":
-        label = "contradiction"
+        label = "entailment"
       else:
         label = tokenization.convert_to_unicode(line[-1])
       examples.append(
           InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
     return examples
+    
+
+
+class ZaloProcessor(DataProcessor):
+  """Processor for the Zalo data set."""
+
+  def get_train_examples(self, data_dir):
+    """See base class."""
+    with tf.gfile.Open(os.path.join(data_dir, "train.json"), 'r') as json_file:
+      data = json.load(json_file)
+
+      examples = []
+
+      for item in data:
+        guid = item['id']
+        text_a = tokenization.convert_to_unicode(item['question'])
+        text_b = tokenization.convert_to_unicode(item['text'])
+        if item['label'] == True:
+          label = tokenization.convert_to_unicode('True')
+        else:
+          label = tokenization.convert_to_unicode('False')
+
+        examples.append(
+            InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+      return examples
+  
+  def get_test_examples(self, data_dir):
+    """See base class."""
+    with tf.gfile.Open(os.path.join(data_dir, "test.json"), 'r') as json_file:
+      data = json.load(json_file)
+
+      examples = []
+
+      for item in data:
+        text_a = tokenization.convert_to_unicode(item['question'])
+        for paragraph in item['paragraphs']:
+          guid = item['__id__']+paragraph['id']
+          text_b = tokenization.convert_to_unicode(paragraph['text'])
+
+          examples.append(
+              InputExample(guid=guid, text_a=text_a, text_b=text_b))
+
+      return examples
+
+  def get_labels(self):
+    """See base class."""
+    return ["True","False"]
 
 
 class MrpcProcessor(DataProcessor):
