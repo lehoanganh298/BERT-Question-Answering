@@ -208,7 +208,7 @@ class XnliProcessor(DataProcessor):
   """Processor for the XNLI data set."""
 
   def __init__(self):
-    self.language = "zh"
+    self.language = "vi"
 
   def get_train_examples(self, data_dir):
     """See base class."""
