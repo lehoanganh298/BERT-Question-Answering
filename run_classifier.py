@@ -337,8 +337,7 @@ class QnliProcessor(DataProcessor):
       examples.append(
           InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
     return examples
-    
-
+  
 
 class ZaloProcessor(DataProcessor):
   """Processor for the Zalo data set."""
@@ -804,9 +803,13 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
         predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
         accuracy = tf.metrics.accuracy(
             labels=label_ids, predictions=predictions, weights=is_real_example)
+        pr, pr_op = tf.metrics.precision(label_ids, predictions)
+        re, re_op = tf.metrics.recall(label_ids, predictions)
+        f1 = (2 * pr * re) / (pr + re)
         loss = tf.metrics.mean(values=per_example_loss, weights=is_real_example)
         return {
             "eval_accuracy": accuracy,
+            "f1": f1,
             "eval_loss": loss,
         }
 
