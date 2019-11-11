@@ -1120,7 +1120,7 @@ def main(_):
             if i >= num_actual_predict_examples:
               break
             if np.argmax(probabilities) == label_dict['True']:
-              writer.write('%s,%s\n',id_list[i][0],id_list[i][1])
+              writer.write('%s,%s\n' % (id_list[i][0],id_list[i][1]))
     else:
       predict_examples = processor.get_test_examples(FLAGS.data_dir)
       num_actual_predict_examples = len(predict_examples)
