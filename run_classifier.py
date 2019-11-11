@@ -1109,7 +1109,7 @@ def main(_):
 
       result = estimator.predict(input_fn=predict_input_fn)
 
-      output_predict_file = os.path.join(FLAGS.output_dir, "test_results.tsv")
+      output_predict_file = os.path.join(FLAGS.output_dir, "results.csv")
       with tf.gfile.GFile(output_predict_file, "w") as writer:
         if task_name == 'zalo':
           tf.logging.info("***** Predict results *****")
