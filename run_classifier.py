@@ -1021,7 +1021,7 @@ def main(_):
 
   if FLAGS.do_eval:
     if task_name=='zalo':
-      train_examples = processor.get_dev_examples(FLAGS.data_dir,FLAGS.k_fold,FLAGS.left_out)
+      eval_examples = processor.get_dev_examples(FLAGS.data_dir,FLAGS.k_fold,FLAGS.left_out)
     else:
       eval_examples = processor.get_dev_examples(FLAGS.data_dir)
     num_actual_eval_examples = len(eval_examples)
