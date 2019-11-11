@@ -128,6 +128,13 @@ flags.DEFINE_integer(
     "num_tpu_cores", 8,
     "Only used if `use_tpu` is True. Total number of TPU cores to use.")
 
+flags.DEFINE_integer(
+    "k_fold", 5,
+    "Percentage of evaluation data.")
+
+flags.DEFINE_integer(
+    "left_out", 0,
+    "Position of the fold left out for evaluation.")
 
 class InputExample(object):
   """A single training/test example for simple sequence classification."""
@@ -342,7 +349,7 @@ class QnliProcessor(DataProcessor):
 class ZaloProcessor(DataProcessor):
   """Processor for the Zalo data set."""
 
-  def get_train_examples(self, data_dir):
+  def get_train_examples(self, data_dir, k_fold, left_out):
     """See base class."""
     with tf.gfile.Open(os.path.join(data_dir, "train.json"), 'r') as json_file:
       data = json.load(json_file)
@@ -350,9 +357,11 @@ class ZaloProcessor(DataProcessor):
       examples = []
 
       n_items = len(data)
-      n_train = int(n_items*0.8)
+      fold_size = n_items//k_fold
+      eval_begin = left_out*fold_size
+      eval_end = (left_out+1)*fold_size
 
-      for item in data[:n_train]:
+      for item in data[:eval_begin]+data[eval_end:]:
         guid = item['id']
         text_a = tokenization.convert_to_unicode(item['question'])
         text_b = tokenization.convert_to_unicode(item['text'])
@@ -365,7 +374,7 @@ class ZaloProcessor(DataProcessor):
             InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
       return examples
   
-  def get_dev_examples(self, data_dir):
+  def get_dev_examples(self, data_dir,k_fold, left_out):
     """See base class."""
     with tf.gfile.Open(os.path.join(data_dir, "train.json"), 'r') as json_file:
       data = json.load(json_file)
@@ -373,9 +382,12 @@ class ZaloProcessor(DataProcessor):
       examples = []
 
       n_items = len(data)
-      n_train = int(n_items*0.8)
+      n_items = len(data)
+      fold_size = n_items//k_fold
+      eval_begin = left_out*fold_size
+      eval_end = (left_out+1)*fold_size
 
-      for item in data[n_train:]:
+      for item in data[eval_begin:eval_end]:
         guid = item['id']
         text_a = tokenization.convert_to_unicode(item['question'])
         text_b = tokenization.convert_to_unicode(item['text'])
@@ -964,7 +976,10 @@ def main(_):
   num_train_steps = None
   num_warmup_steps = None
   if FLAGS.do_train:
-    train_examples = processor.get_train_examples(FLAGS.data_dir)
+    if task_name=='zalo':
+      train_examples = processor.get_train_examples(FLAGS.data_dir,FLAGS.k_fold,FLAGS.left_out)
+    else:
+      train_examples = processor.get_train_examples(FLAGS.data_dir)
     num_train_steps = int(
         len(train_examples) / FLAGS.train_batch_size * FLAGS.num_train_epochs)
     num_warmup_steps = int(num_train_steps * FLAGS.warmup_proportion)
@@ -1005,7 +1020,10 @@ def main(_):
     estimator.train(input_fn=train_input_fn, max_steps=num_train_steps)
 
   if FLAGS.do_eval:
-    eval_examples = processor.get_dev_examples(FLAGS.data_dir)
+    if task_name=='zalo':
+      train_examples = processor.get_dev_examples(FLAGS.data_dir,FLAGS.k_fold,FLAGS.left_out)
+    else:
+      eval_examples = processor.get_dev_examples(FLAGS.data_dir)
     num_actual_eval_examples = len(eval_examples)
     if FLAGS.use_tpu:
       # TPU requires a fixed batch size for all batches, therefore the number
