@@ -1053,8 +1053,8 @@ def main(_):
       precision = result['precision']
       recall = result['recall']
       f1=2*precision*recall/(precision+recall)
-      tf.logging.info("  %s = %s", key, str(f1))
-      writer.write("%s = %s\n" % (key, str(f1)))
+      tf.logging.info("  %s = %s", 'F1', str(f1))
+      writer.write("%s = %s\n" % ('F1', str(f1)))
 
   if FLAGS.do_predict:
     predict_examples = processor.get_test_examples(FLAGS.data_dir)
