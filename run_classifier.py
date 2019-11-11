@@ -803,13 +803,13 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
         predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
         accuracy = tf.metrics.accuracy(
             labels=label_ids, predictions=predictions, weights=is_real_example)
-        pr, pr_op = tf.metrics.precision(label_ids, predictions)
-        re, re_op = tf.metrics.recall(label_ids, predictions)
-        f1 = (2 * pr * re) / (pr + re)
+        precision = tf.metrics.precision(label_ids, predictions)
+        recall = tf.metrics.recall(label_ids, predictions)
         loss = tf.metrics.mean(values=per_example_loss, weights=is_real_example)
         return {
             "eval_accuracy": accuracy,
-            "f1": f1,
+            "precision": precision,
+            "recall": recall,
             "eval_loss": loss,
         }
 
@@ -1049,6 +1049,12 @@ def main(_):
       for key in sorted(result.keys()):
         tf.logging.info("  %s = %s", key, str(result[key]))
         writer.write("%s = %s\n" % (key, str(result[key])))
+
+      precision = result['precision']
+      recall = result['recall']
+      f1=2*precision*recall/(precision+recall)
+      tf.logging.info("  %s = %s", key, str(f1))
+      writer.write("%s = %s\n" % (key, str(f1)))
 
   if FLAGS.do_predict:
     predict_examples = processor.get_test_examples(FLAGS.data_dir)
