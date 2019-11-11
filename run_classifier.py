@@ -414,7 +414,7 @@ class ZaloProcessor(DataProcessor):
           text_b = tokenization.convert_to_unicode(paragraph['text'])
 
           examples.append(
-              InputExample(guid=guid, text_a=text_a, text_b=text_b))
+              InputExample(guid=guid, text_a=text_a, text_b=text_b, label="True"))
 
       return examples
 
