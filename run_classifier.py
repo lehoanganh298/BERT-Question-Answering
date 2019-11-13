@@ -306,6 +306,41 @@ class MnliProcessor(DataProcessor):
     return examples
 
 
+class SquadProcessor(DataProcessor):
+  """Processor for the Squad data set (binary version (possible/impossible))."""
+
+  def get_train_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(os.path.join(data_dir, "train-v2.0.json"))
+
+  def get_dev_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(os.path.join(data_dir, "dev-v2.0.json"))
+
+  def get_labels(self):
+    """See base class."""
+    return ["possible","impossible"]
+
+  def _create_examples(self, input_file):
+    """Creates examples for the training and dev sets."""
+    with tf.gfile.Open(input_file, "r") as reader:
+      input_data = json.load(reader)["data"]
+
+    examples = []
+    for entry in input_data:
+      for paragraph in entry["paragraphs"]:
+        paragraph_text = paragraph["context"]
+        for qa in paragraph["qas"]:
+          qas_id = qa["id"]
+          question_text = qa["question"]
+          label = "impossible" if qa["is_impossible"]==True else "possible"
+
+          examples.append(
+              InputExample(guid=qas_id, text_a=question_text, text_b=paragraph_text, label=label))
+
+    return examples
+
+
 class QnliProcessor(DataProcessor):
   """Processor for the QNLI data set (GLUE version)."""
 
