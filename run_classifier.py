@@ -961,6 +961,7 @@ def main(_):
       "mrpc": MrpcProcessor,
       "xnli": XnliProcessor,
       "qnli": QnliProcessor,
+      "squadbinary": SquadProcessor,
       "zalo": ZaloProcessor
   }
 
