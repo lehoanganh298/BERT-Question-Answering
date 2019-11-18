@@ -138,7 +138,7 @@ flags.DEFINE_integer(
     "Position of the fold left out for evaluation.")
 
 
-train_summary_writer = tf.summary.create_file_writer('logs')
+# train_summary_writer = tf.summary.create_file_writer('logs')
 
 class InputExample(object):
   """A single training/test example for simple sequence classification."""
@@ -783,6 +783,7 @@ def create_model(bert_config, is_training, input_ids, input_mask, segment_ids,
 
     per_example_loss = -tf.reduce_sum(one_hot_labels * log_probs, axis=-1)
     loss = tf.reduce_mean(per_example_loss)
+    tf.logging.info('***************loss = %s \n',str(loss))
 
     return (loss, per_example_loss, logits, probabilities)
 
@@ -832,12 +833,12 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
         tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
     tf.logging.info("**** Trainable Variables ****")
-    for var in tvars:
-      init_string = ""
-      if var.name in initialized_variable_names:
-        init_string = ", *INIT_FROM_CKPT*"
-      tf.logging.info("  name = %s, shape = %s%s", var.name, var.shape,
-                      init_string)
+    # for var in tvars:
+    #   init_string = ""
+    #   if var.name in initialized_variable_names:
+    #     init_string = ", *INIT_FROM_CKPT*"
+    #   tf.logging.info("  name = %s, shape = %s%s", var.name, var.shape,
+    #                   init_string)
 
     output_spec = None
     if mode == tf.estimator.ModeKeys.TRAIN:
@@ -859,10 +860,10 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
         precision = tf.metrics.precision(labels=label_ids, predictions=predictions)
         recall = tf.metrics.recall(labels=label_ids, predictions=predictions)
         loss = tf.metrics.mean(values=per_example_loss, weights=is_real_example)
-        with train_summary_writer.as_default():
-          tf.summary.scalar('loss',loss)
-          tf.summary.scalar('accuracy',accuracy)
-          tf.summary.scalar('precision',precision)
+        # with train_summary_writer.as_default():
+        #   tf.summary.scalar('loss',loss)
+        #   tf.summary.scalar('accuracy',accuracy)
+        #   tf.summary.scalar('precision',precision)
 
         return {
             "eval_accuracy": accuracy,
