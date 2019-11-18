@@ -137,6 +137,9 @@ flags.DEFINE_integer(
     "left_out", 0,
     "Position of the fold left out for evaluation.")
 
+
+train_summary_writer = tf.summary.create_file_writer('logs')
+
 class InputExample(object):
   """A single training/test example for simple sequence classification."""
 
@@ -853,9 +856,14 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
         predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
         accuracy = tf.metrics.accuracy(
             labels=label_ids, predictions=predictions, weights=is_real_example)
-        precision = tf.metrics.precision(label_ids, predictions)
-        recall = tf.metrics.recall(label_ids, predictions)
+        precision = tf.metrics.precision(labels=label_ids, predictions=predictions)
+        recall = tf.metrics.recall(labels=label_ids, predictions=predictions)
         loss = tf.metrics.mean(values=per_example_loss, weights=is_real_example)
+        with train_summary_writer.as_default():
+          tf.summary.scalar('loss',loss)
+          tf.summary.scalar('accuracy',accuracy)
+          tf.summary.scalar('precision',precision)
+
         return {
             "eval_accuracy": accuracy,
             "precision": precision,
