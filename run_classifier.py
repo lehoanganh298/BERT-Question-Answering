@@ -94,6 +94,9 @@ flags.DEFINE_float(
     "Proportion of training to perform linear learning rate warmup for. "
     "E.g., 0.1 = 10% of training.")
 
+flags.DEFINE_integer("save_summary_steps", 100,
+                     "How often to save summary.")
+
 flags.DEFINE_integer("save_checkpoints_steps", 1000,
                      "How often to save the model checkpoint.")
 
@@ -1012,6 +1015,7 @@ def main(_):
       cluster=tpu_cluster_resolver,
       master=FLAGS.master,
       model_dir=FLAGS.output_dir,
+      save_summary_steps=FLAGS.save_summary_steps,
       save_checkpoints_steps=FLAGS.save_checkpoints_steps,
       keep_checkpoint_max=FLAGS.keep_checkpoint_max,
       tpu_config=tf.contrib.tpu.TPUConfig(
