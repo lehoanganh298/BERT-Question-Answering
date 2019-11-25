@@ -338,11 +338,14 @@ class SquadProcessor(DataProcessor):
     examples = []
     for entry in input_data:
       for paragraph in entry["paragraphs"]:
-        paragraph_text = paragraph["context"]
+        paragraph_text = tokenization.convert_to_unicode(paragraph["context"])
         for qa in paragraph["qas"]:
-          qas_id = qa["id"]
-          question_text = qa["question"]
-          label = "impossible" if qa["is_impossible"]==True else "possible"
+          qas_id = tokenization.convert_to_unicode(qa["id"])
+          question_text = tokenization.convert_to_unicode(qa["question"])
+          if qa["is_impossible"]==True:
+             label = tokenization.convert_to_unicode("possible")
+          else:
+            label = tokenization.convert_to_unicode("impossible")
 
           examples.append(
               InputExample(guid=qas_id, text_a=question_text, text_b=paragraph_text, label=label))
