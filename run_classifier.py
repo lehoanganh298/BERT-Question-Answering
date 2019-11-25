@@ -405,11 +405,15 @@ class ZaloProcessor(DataProcessor):
       examples = []
 
       n_items = len(data)
-      fold_size = n_items//k_fold
-      eval_begin = left_out*fold_size
-      eval_end = (left_out+1)*fold_size
+      if left_out==-1:
+        train_data=data
+      else:
+        fold_size = n_items//k_fold
+        eval_begin = left_out*fold_size
+        eval_end = (left_out+1)*fold_size
+        train_data = data[:eval_begin]+data[eval_end:]
 
-      for item in data[:eval_begin]+data[eval_end:]:
+      for item in train_data:
         guid = item['id']
         text_a = tokenization.convert_to_unicode(item['question'])
         text_b = tokenization.convert_to_unicode(item['text'])
@@ -431,6 +435,8 @@ class ZaloProcessor(DataProcessor):
 
       n_items = len(data)
       n_items = len(data)
+      if left_out==-1:
+        left_out=0
       fold_size = n_items//k_fold
       eval_begin = left_out*fold_size
       eval_end = (left_out+1)*fold_size
