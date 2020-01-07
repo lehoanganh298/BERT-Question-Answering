@@ -456,21 +456,22 @@ class ZaloProcessor(DataProcessor):
 
   def get_test_examples(self, data_dir):
     """See base class."""
-    with tf.gfile.Open(os.path.join(data_dir, "test1.json"), 'r') as json_file:
+    with tf.gfile.Open(os.path.join(data_dir, "test_small.json"), 'r') as json_file:
       data = json.load(json_file)
 
       examples = []
       id_list=[]
       
+      idx = 0
       for item in data:
+        idx += 1
+        guid = "test-%s" % (tokenization.convert_to_unicode(str(idx)))
         text_a = tokenization.convert_to_unicode(item['question'])
-        for paragraph in item['paragraphs']:
-          guid = item['__id__']+paragraph['id']
-          text_b = tokenization.convert_to_unicode(paragraph['text'])
+        text_b = tokenization.convert_to_unicode(item['text'])
 
-          examples.append(
-              InputExample(guid=guid, text_a=text_a, text_b=text_b, label="True"))
-          id_list.append((item['__id__'],paragraph['id']))
+        examples.append(
+            InputExample(guid=guid, text_a=text_a, text_b=text_b, label="True"))
+        id_list.append(guid)
 
       return examples, id_list
 
@@ -643,15 +644,15 @@ def convert_single_example(ex_index, example, label_list, max_seq_length,
   assert len(segment_ids) == max_seq_length
 
   label_id = label_map[example.label]
-  if ex_index < 5:
-    tf.logging.info("*** Example ***")
-    tf.logging.info("guid: %s" % (example.guid))
-    tf.logging.info("tokens: %s" % " ".join(
-        [tokenization.printable_text(x) for x in tokens]))
-    tf.logging.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
-    tf.logging.info("input_mask: %s" % " ".join([str(x) for x in input_mask]))
-    tf.logging.info("segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
-    tf.logging.info("label: %s (id = %d)" % (example.label, label_id))
+  # if ex_index < 5:
+  #   tf.logging.info("*** Example ***")
+  #   tf.logging.info("guid: %s" % (example.guid))
+  #   tf.logging.info("tokens: %s" % " ".join(
+  #       [tokenization.printable_text(x) for x in tokens]))
+  #   tf.logging.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
+  #   tf.logging.info("input_mask: %s" % " ".join([str(x) for x in input_mask]))
+  #   tf.logging.info("segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
+  #   tf.logging.info("label: %s (id = %d)" % (example.label, label_id))
 
   feature = InputFeatures(
       input_ids=input_ids,
@@ -1156,10 +1157,10 @@ def main(_):
                                               predict_file)
 
       tf.logging.info("***** Running prediction*****")
-      tf.logging.info("  Num examples = %d (%d actual, %d padding)",
-                      len(predict_examples), num_actual_predict_examples,
-                      len(predict_examples) - num_actual_predict_examples)
-      tf.logging.info("  Batch size = %d", FLAGS.predict_batch_size)
+      # tf.logging.info("  Num examples = %d (%d actual, %d padding)",
+      #                 len(predict_examples), num_actual_predict_examples,
+      #                 len(predict_examples) - num_actual_predict_examples)
+      # tf.logging.info("  Batch size = %d", FLAGS.predict_batch_size)
 
       predict_drop_remainder = True if FLAGS.use_tpu else False
       predict_input_fn = file_based_input_fn_builder(
@@ -1180,11 +1181,13 @@ def main(_):
             probabilities = prediction["probabilities"]
             if i >= num_actual_predict_examples:
               break
+            answer=''
             if np.argmax(probabilities) == label_dict['True']:
-              writer.write('%s,%s\n' % (id_list[i][0],id_list[i][1]))
-              print('True')
+              answer='True'
             else:
-              print('False')
+              answer='False'
+            writer.write('%s,%s\n' % (id_list[i],answer))
+
     else:
       predict_examples = processor.get_test_examples(FLAGS.data_dir)
       num_actual_predict_examples = len(predict_examples)
